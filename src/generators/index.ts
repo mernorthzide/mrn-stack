@@ -22,10 +22,10 @@ export async function generate(config: ProjectConfig): Promise<void> {
     ? process.cwd()
     : path.resolve(process.cwd(), config.projectName);
 
-  // Get actual project name from folder for package.json
+  // Get actual project name from folder for package.json (extract basename if full path provided)
   const actualProjectName = isCurrentDir
     ? path.basename(process.cwd())
-    : config.projectName;
+    : path.basename(config.projectName);
 
   // Update config with actual project name
   const finalConfig = { ...config, projectName: actualProjectName };
@@ -159,7 +159,7 @@ async function generateMonorepoProject(
   const frontendGenerator = getFrontendGenerator(config.framework);
   await frontendGenerator.generate(frontendPath, {
     ...config,
-    projectName: `${config.projectName}-frontend`,
+    projectName: "frontend", // Fixed name for pnpm workspace filtering
   });
   s.stop("Frontend generated");
 
@@ -169,7 +169,7 @@ async function generateMonorepoProject(
   if (backendGenerator && "generate" in backendGenerator) {
     await backendGenerator.generate(backendPath, {
       ...config,
-      projectName: `${config.projectName}-backend`,
+      projectName: "backend", // Fixed name for pnpm workspace filtering
     });
   }
   s.stop("Backend generated");

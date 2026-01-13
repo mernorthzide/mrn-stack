@@ -31,7 +31,7 @@ export abstract class BaseBackendGenerator {
   // Common backend package.json structure
   protected getPackageJson(config: ProjectConfig): object {
     return {
-      name: `${config.projectName}-backend`,
+      name: config.projectName, // Use projectName directly (should be "backend" for monorepo)
       version: "0.1.0",
       private: true,
       type: "module",
