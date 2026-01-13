@@ -49,6 +49,12 @@ export class NextGenerator extends BaseGenerator {
       await this.writeFile(projectPath, "vitest.config.ts", this.getVitestConfig());
     }
 
+    // Write Playwright config
+    if (config.extras.playwright) {
+      await this.writeFile(projectPath, "playwright.config.ts", this.getPlaywrightConfig(config));
+      await this.writeFile(projectPath, "e2e/example.spec.ts", this.getPlaywrightExampleTest(config));
+    }
+
     // Write AI config files (Cursor + Claude)
     await this.writeAIConfigFiles(projectPath, config);
   }
@@ -182,6 +188,11 @@ export class NextGenerator extends BaseGenerator {
       scripts["test:ui"] = "vitest --ui";
     }
 
+    if (config.extras.playwright) {
+      scripts["test:e2e"] = "playwright test";
+      scripts["test:e2e:ui"] = "playwright test --ui";
+    }
+
     if (config.database === "convex") {
       scripts["dev"] = "convex dev --once && next dev";
       scripts["convex"] = "convex dev";
@@ -279,6 +290,10 @@ export class NextGenerator extends BaseGenerator {
       config.database === "sqlite"
     ) {
       devDeps["drizzle-kit"] = "^0.30.0";
+    }
+
+    if (config.extras.playwright) {
+      devDeps["@playwright/test"] = "^1.49.0";
     }
 
     return devDeps;
@@ -639,6 +654,58 @@ export const auth = betterAuth({
 import { toNextJsHandler } from "better-auth/next-js";
 
 export const { GET, POST } = toNextJsHandler(auth);
+`;
+  }
+
+  private getPlaywrightConfig(config: ProjectConfig): string {
+    return `import { defineConfig, devices } from "@playwright/test";
+
+export default defineConfig({
+  testDir: "./e2e",
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: "html",
+  use: {
+    baseURL: "http://localhost:3000",
+    trace: "on-first-retry",
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+    },
+  ],
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:3000",
+    reuseExistingServer: !process.env.CI,
+  },
+});
+`;
+  }
+
+  private getPlaywrightExampleTest(config: ProjectConfig): string {
+    return `import { test, expect } from "@playwright/test";
+
+test("has title", async ({ page }) => {
+  await page.goto("/");
+  await expect(page).toHaveTitle(/${config.projectName}/);
+});
+
+test("has welcome heading", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /welcome/i })).toBeVisible();
+});
 `;
   }
 }

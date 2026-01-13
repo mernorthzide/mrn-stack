@@ -36,6 +36,7 @@ export interface ProjectConfig {
     eslint: boolean;
     prettier: boolean;
     testing: boolean;
+    playwright: boolean;
     docker: boolean;
   };
 }

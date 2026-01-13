@@ -21,6 +21,7 @@ interface CLIOptions {
   eslint?: boolean;
   docker?: boolean;
   testing?: boolean;
+  playwright?: boolean;
   yes?: boolean;
 }
 
@@ -52,6 +53,7 @@ export async function cli() {
     .option("--no-eslint", "Skip ESLint")
     .option("--docker", "Add Docker support")
     .option("--testing", "Add testing setup (Vitest)")
+    .option("--playwright", "Add Playwright E2E testing")
     .option("-y, --yes", "Skip prompts and use defaults")
     .action(async (projectName: string | undefined, options: CLIOptions) => {
       banner();
@@ -73,6 +75,7 @@ export async function cli() {
               eslint: options.eslint ?? true,
               prettier: options.eslint ?? true,
               testing: options.testing ?? false,
+              playwright: options.playwright ?? false,
               docker: options.docker ?? false,
             },
           };
@@ -90,6 +93,7 @@ export async function cli() {
               eslint: options.eslint ?? true,
               prettier: options.eslint ?? true,
               testing: options.testing ?? false,
+              playwright: options.playwright ?? false,
               docker: options.docker ?? false,
             },
           };

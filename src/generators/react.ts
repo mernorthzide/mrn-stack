@@ -63,6 +63,12 @@ export class ReactGenerator extends BaseGenerator {
     if (config.extras.testing) {
       await this.writeFile(projectPath, "vitest.config.ts", this.getVitestConfig(config));
     }
+
+    // Write Playwright config
+    if (config.extras.playwright) {
+      await this.writeFile(projectPath, "playwright.config.ts", this.getPlaywrightConfig(config));
+      await this.writeFile(projectPath, "e2e/example.spec.ts", this.getPlaywrightExampleTest(config));
+    }
   }
 
   private async writeSourceFiles(projectPath: string, config: ProjectConfig): Promise<void> {
@@ -141,6 +147,11 @@ export class ReactGenerator extends BaseGenerator {
       scripts["test:ui"] = "vitest --ui";
     }
 
+    if (config.extras.playwright) {
+      scripts["test:e2e"] = "playwright test";
+      scripts["test:e2e:ui"] = "playwright test --ui";
+    }
+
     if (config.database === "convex") {
       scripts.dev = "convex dev --once && vite";
       scripts.convex = "convex dev";
@@ -212,6 +223,10 @@ export class ReactGenerator extends BaseGenerator {
       devDeps["vitest"] = "^2.1.0";
       devDeps["@testing-library/react"] = "^16.1.0";
       devDeps["jsdom"] = "^25.0.0";
+    }
+
+    if (config.extras.playwright) {
+      devDeps["@playwright/test"] = "^1.49.0";
     }
 
     return devDeps;
@@ -540,6 +555,58 @@ const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
   return <ConvexProvider client={convex}>{children}</ConvexProvider>;
 }
+`;
+  }
+
+  private getPlaywrightConfig(config: ProjectConfig): string {
+    return `import { defineConfig, devices } from "@playwright/test";
+
+export default defineConfig({
+  testDir: "./e2e",
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: "html",
+  use: {
+    baseURL: "http://localhost:5173",
+    trace: "on-first-retry",
+  },
+  projects: [
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
+    },
+  ],
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:5173",
+    reuseExistingServer: !process.env.CI,
+  },
+});
+`;
+  }
+
+  private getPlaywrightExampleTest(config: ProjectConfig): string {
+    return `import { test, expect } from "@playwright/test";
+
+test("has title", async ({ page }) => {
+  await page.goto("/");
+  await expect(page).toHaveTitle(/${config.projectName}/);
+});
+
+test("has welcome heading", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /welcome/i })).toBeVisible();
+});
 `;
   }
 }

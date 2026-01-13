@@ -135,6 +135,7 @@ export async function runPrompts(options: PromptOptions): Promise<ProjectConfig>
       { value: "typescript", label: "TypeScript", hint: "Type-safe development" },
       { value: "eslint", label: "ESLint + Prettier", hint: "Code quality" },
       { value: "testing", label: "Testing (Vitest)", hint: "Unit & integration tests" },
+      { value: "playwright", label: "Playwright", hint: "E2E testing" },
       { value: "docker", label: "Docker", hint: "Container support" },
     ],
     initialValues: ["typescript", "eslint"],
@@ -158,6 +159,7 @@ export async function runPrompts(options: PromptOptions): Promise<ProjectConfig>
       eslint: extras.includes("eslint"),
       prettier: extras.includes("eslint"),
       testing: extras.includes("testing"),
+      playwright: extras.includes("playwright"),
       docker: extras.includes("docker"),
     },
   };
