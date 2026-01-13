@@ -4,7 +4,10 @@ import { generate } from "./generators/index.js";
 import { banner, logger } from "./utils/logger.js";
 import type {
   Framework,
+  BackendFramework,
   Database,
+  ORM,
+  HonoRuntime,
   Auth,
   Styling,
   PackageManager,
@@ -13,7 +16,10 @@ import type {
 
 interface CLIOptions {
   framework?: Framework;
+  backend?: BackendFramework;
   db?: Database;
+  orm?: ORM;
+  runtime?: HonoRuntime;
   auth?: Auth;
   styling?: Styling;
   pm?: PackageManager;
@@ -31,13 +37,19 @@ export async function cli() {
   program
     .name("create-mrn-app")
     .description("Scaffold modern full-stack applications")
-    .version("0.1.0")
+    .version("0.2.0")
     .argument("[project-name]", "Name of the project")
-    .option("-f, --framework <framework>", "Framework: next, react, vue, astro")
+    .option("-f, --framework <framework>", "Frontend: next, react, vue, astro")
+    .option(
+      "-b, --backend <backend>",
+      "Backend: none, nextjs-builtin, express, fastify, nestjs, hono, elysia, convex"
+    )
     .option(
       "-d, --db <database>",
-      "Database: supabase, convex, neon, sqlite, turso, planetscale, none"
+      "Database: supabase, neon, planetscale, mongodb, sqlite, turso, none"
     )
+    .option("--orm <orm>", "ORM: prisma, drizzle, none")
+    .option("--runtime <runtime>", "Runtime for Hono: node, bun")
     .option(
       "-a, --auth <auth>",
       "Auth: next-auth, clerk, supabase-auth, better-auth, none"
@@ -66,10 +78,13 @@ export async function cli() {
           config = {
             projectName,
             framework: options.framework || "next",
+            backend: options.backend || "none",
             database: options.db || "none",
+            orm: options.orm || "none",
             auth: options.auth || "none",
             styling: options.styling || "tailwind",
             packageManager: options.pm || "pnpm",
+            runtime: options.runtime,
             extras: {
               typescript: options.typescript ?? true,
               eslint: options.eslint ?? true,
@@ -84,10 +99,13 @@ export async function cli() {
           config = {
             projectName,
             framework: options.framework!,
+            backend: options.backend!,
             database: options.db!,
+            orm: options.orm || "none",
             auth: options.auth!,
             styling: options.styling!,
             packageManager: options.pm!,
+            runtime: options.runtime,
             extras: {
               typescript: options.typescript ?? true,
               eslint: options.eslint ?? true,
@@ -102,7 +120,10 @@ export async function cli() {
           config = await runPrompts({
             projectName,
             framework: options.framework,
+            backend: options.backend,
             database: options.db,
+            orm: options.orm,
+            runtime: options.runtime,
             auth: options.auth,
             styling: options.styling,
             packageManager: options.pm,
@@ -126,6 +147,7 @@ export async function cli() {
 function hasAllFlags(options: CLIOptions): boolean {
   return !!(
     options.framework &&
+    options.backend &&
     options.db &&
     options.auth &&
     options.styling &&

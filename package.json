@@ -1,6 +1,6 @@
 {
   "name": "create-mrn-app",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "CLI to scaffold modern full-stack applications with Next.js, React, Vue, or Astro",
   "author": "MRN Stack",
   "license": "MIT",

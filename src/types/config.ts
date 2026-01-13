@@ -1,5 +1,15 @@
 export type Framework = "next" | "react" | "vue" | "astro";
 
+export type BackendFramework =
+  | "none"
+  | "nextjs-builtin"
+  | "express"
+  | "fastify"
+  | "nestjs"
+  | "hono"
+  | "elysia"
+  | "convex";
+
 export type Database =
   | "supabase"
   | "convex"
@@ -7,7 +17,12 @@ export type Database =
   | "sqlite"
   | "turso"
   | "planetscale"
+  | "mongodb"
   | "none";
+
+export type ORM = "prisma" | "drizzle" | "none";
+
+export type HonoRuntime = "node" | "bun";
 
 export type Auth =
   | "next-auth"
@@ -27,10 +42,13 @@ export type PackageManager = "npm" | "pnpm" | "bun";
 export interface ProjectConfig {
   projectName: string;
   framework: Framework;
+  backend: BackendFramework;
   database: Database;
+  orm: ORM;
   auth: Auth;
   styling: Styling;
   packageManager: PackageManager;
+  runtime?: HonoRuntime;
   extras: {
     typescript: boolean;
     eslint: boolean;
@@ -71,6 +89,18 @@ export interface PackageManagerOption {
   hint: string;
 }
 
+export interface BackendOption {
+  value: BackendFramework;
+  label: string;
+  hint: string;
+}
+
+export interface ORMOption {
+  value: ORM;
+  label: string;
+  hint: string;
+}
+
 // Framework compatibility matrix
 export const FRAMEWORK_AUTH_COMPAT: Record<Framework, Auth[]> = {
   next: ["next-auth", "clerk", "supabase-auth", "better-auth", "none"],
@@ -80,8 +110,37 @@ export const FRAMEWORK_AUTH_COMPAT: Record<Framework, Auth[]> = {
 };
 
 export const FRAMEWORK_DB_COMPAT: Record<Framework, Database[]> = {
-  next: ["supabase", "convex", "neon", "sqlite", "turso", "planetscale", "none"],
-  react: ["supabase", "convex", "neon", "sqlite", "turso", "planetscale", "none"],
-  vue: ["supabase", "neon", "sqlite", "turso", "planetscale", "none"],
-  astro: ["supabase", "neon", "sqlite", "turso", "planetscale", "none"],
+  next: ["supabase", "convex", "neon", "sqlite", "turso", "planetscale", "mongodb", "none"],
+  react: ["supabase", "convex", "neon", "sqlite", "turso", "planetscale", "mongodb", "none"],
+  vue: ["supabase", "neon", "sqlite", "turso", "planetscale", "mongodb", "none"],
+  astro: ["supabase", "neon", "sqlite", "turso", "planetscale", "mongodb", "none"],
 };
+
+// Backend framework compatibility matrix
+export const FRAMEWORK_BACKEND_COMPAT: Record<Framework, BackendFramework[]> = {
+  next: ["none", "nextjs-builtin", "express", "fastify", "nestjs", "hono", "elysia", "convex"],
+  react: ["none", "express", "fastify", "nestjs", "hono", "elysia", "convex"],
+  vue: ["none", "express", "fastify", "nestjs", "hono", "elysia"],
+  astro: ["none", "express", "fastify", "nestjs", "hono", "elysia"],
+};
+
+// ORM compatibility matrix based on database
+export const DATABASE_ORM_COMPAT: Record<Database, ORM[]> = {
+  mongodb: ["prisma"],
+  supabase: ["prisma", "drizzle"],
+  neon: ["prisma", "drizzle"],
+  sqlite: ["prisma", "drizzle"],
+  turso: ["prisma", "drizzle"],
+  planetscale: ["prisma", "drizzle"],
+  convex: ["none"],
+  none: ["none"],
+};
+
+// Backend frameworks that require Bun runtime
+export const BUN_ONLY_BACKENDS: BackendFramework[] = ["elysia"];
+
+// Backend frameworks that allow runtime selection
+export const RUNTIME_SELECTABLE_BACKENDS: BackendFramework[] = ["hono"];
+
+// Backend frameworks that skip database prompt
+export const SKIP_DB_BACKENDS: BackendFramework[] = ["convex", "none"];
