@@ -56,6 +56,9 @@ export class ReactGenerator extends BaseGenerator {
       await this.writeFile(projectPath, "docker-compose.yml", this.getDockerCompose(config));
     }
 
+    // Write AI config files (Cursor + Claude)
+    await this.writeAIConfigFiles(projectPath, config);
+
     // Write testing config
     if (config.extras.testing) {
       await this.writeFile(projectPath, "vitest.config.ts", this.getVitestConfig(config));

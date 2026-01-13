@@ -48,6 +48,9 @@ export class NextGenerator extends BaseGenerator {
     if (config.extras.testing) {
       await this.writeFile(projectPath, "vitest.config.ts", this.getVitestConfig());
     }
+
+    // Write AI config files (Cursor + Claude)
+    await this.writeAIConfigFiles(projectPath, config);
   }
 
   private async writeAppFiles(projectPath: string, config: ProjectConfig): Promise<void> {

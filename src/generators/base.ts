@@ -271,4 +271,126 @@ BETTER_AUTH_SECRET=your-secret-here
 
     return env;
   }
+
+  // AI Config Files
+  protected getCursorRules(config: ProjectConfig): string {
+    const frameworkName = this.getFrameworkDisplayName(config.framework);
+    const dbInfo = config.database !== "none" ? `- Database: ${config.database}\n` : "";
+    const authInfo = config.auth !== "none" ? `- Auth: ${config.auth}\n` : "";
+    const stylingInfo = config.styling.includes("tailwind") ? "- Styling: Tailwind CSS\n" : "";
+
+    return `# ${config.projectName}
+
+## Project Overview
+This is a ${frameworkName} project created with create-mrn-app.
+
+## Tech Stack
+- Framework: ${frameworkName}
+${dbInfo}${authInfo}${stylingInfo}- Language: ${config.extras.typescript ? "TypeScript" : "JavaScript"}
+
+## Code Style
+- Use ${config.extras.typescript ? "TypeScript" : "JavaScript"} for all code
+- Follow existing patterns in the codebase
+- Use functional components with hooks
+- Prefer named exports over default exports
+- Use path aliases (@/) for imports
+
+## File Structure
+- \`app/\` or \`src/\` - Application code
+- \`components/\` - Reusable UI components
+- \`lib/\` - Utility functions and configurations
+- \`public/\` - Static assets
+
+## Conventions
+- Component files: PascalCase (e.g., Button.tsx)
+- Utility files: camelCase (e.g., utils.ts)
+- Use semantic HTML elements
+- Keep components small and focused
+- Extract reusable logic into custom hooks
+
+## Commands
+- \`${config.packageManager === "npm" ? "npm run dev" : config.packageManager + " dev"}\` - Start development server
+- \`${config.packageManager === "npm" ? "npm run build" : config.packageManager + " build"}\` - Build for production
+- \`${config.packageManager === "npm" ? "npm run lint" : config.packageManager + " lint"}\` - Run linter
+`;
+  }
+
+  protected getClaudeMd(config: ProjectConfig): string {
+    const frameworkName = this.getFrameworkDisplayName(config.framework);
+    const dbInfo = config.database !== "none" ? `\n- **Database**: ${config.database}` : "";
+    const authInfo = config.auth !== "none" ? `\n- **Auth**: ${config.auth}` : "";
+
+    return `# ${config.projectName}
+
+## Project Context
+${frameworkName} application created with create-mrn-app.
+
+## Tech Stack
+- **Framework**: ${frameworkName}${dbInfo}${authInfo}
+- **Styling**: ${config.styling.includes("tailwind") ? "Tailwind CSS" : config.styling}
+- **Language**: ${config.extras.typescript ? "TypeScript" : "JavaScript"}
+- **Package Manager**: ${config.packageManager}
+
+## Directory Structure
+\`\`\`
+${this.getDirectoryStructure(config)}
+\`\`\`
+
+## Development Commands
+\`\`\`bash
+${config.packageManager}${config.packageManager === "npm" ? " run" : ""} dev      # Start dev server
+${config.packageManager}${config.packageManager === "npm" ? " run" : ""} build    # Build for production
+${config.packageManager}${config.packageManager === "npm" ? " run" : ""} lint     # Run linter
+\`\`\`
+
+## Code Conventions
+1. **Components**: Use functional components with hooks
+2. **Imports**: Use \`@/\` path alias for absolute imports
+3. **Naming**: PascalCase for components, camelCase for utilities
+4. **Types**: ${config.extras.typescript ? "Define types/interfaces for all props and data" : "Use JSDoc for type hints"}
+
+## Key Files
+- \`${config.framework === "next" ? "app/layout.tsx" : "src/main.tsx"}\` - Root layout/entry
+- \`${config.framework === "next" ? "app/page.tsx" : "src/App.tsx"}\` - Main page component
+- \`lib/\` - Shared utilities and configurations
+${config.database !== "none" ? `- \`lib/${config.database === "supabase" ? "supabase" : "db"}/\` - Database client\n` : ""}
+## Notes
+- Environment variables are in \`.env.local\`
+- Run \`${config.packageManager}${config.packageManager === "npm" ? " run" : ""} dev\` to start developing
+`;
+  }
+
+  private getFrameworkDisplayName(framework: string): string {
+    const names: Record<string, string> = {
+      next: "Next.js",
+      react: "React",
+      vue: "Vue.js",
+      astro: "Astro",
+    };
+    return names[framework] || framework;
+  }
+
+  private getDirectoryStructure(config: ProjectConfig): string {
+    if (config.framework === "next") {
+      return `├── app/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── components/
+├── lib/
+└── public/`;
+    }
+    return `├── src/
+│   ├── main.tsx
+│   ├── App.tsx
+│   └── components/
+├── public/
+└── index.html`;
+  }
+
+  // Helper method to write AI config files
+  protected async writeAIConfigFiles(projectPath: string, config: ProjectConfig): Promise<void> {
+    await this.writeFile(projectPath, ".cursorrules", this.getCursorRules(config));
+    await this.writeFile(projectPath, "CLAUDE.md", this.getClaudeMd(config));
+  }
 }

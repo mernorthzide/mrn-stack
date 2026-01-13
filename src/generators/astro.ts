@@ -46,6 +46,9 @@ export class AstroGenerator extends BaseGenerator {
       await this.writeFile(projectPath, "Dockerfile", this.getAstroDockerfile());
       await this.writeFile(projectPath, "docker-compose.yml", this.getDockerCompose(config));
     }
+
+    // Write AI config files (Cursor + Claude)
+    await this.writeAIConfigFiles(projectPath, config);
   }
 
   private async writeSourceFiles(projectPath: string, config: ProjectConfig): Promise<void> {
